@@ -6,17 +6,19 @@ import { renderToString } from 'react-dom/server';
 
 const assets = require(process.env.RAZZLE_ASSETS_MANIFEST);
 
+const public_bucket_domain = process.env.PUBLIC_BUCKET_DOMAIN || '';
+const public_bucket_url = public_bucket_domain ? `https://${public_bucket_domain}` : '';
+
 const cssLinksFromAssets = (assets, entrypoint) => {
   return assets[entrypoint] ? assets[entrypoint].css ?
   assets[entrypoint].css.map(asset=>
-    `<link rel="stylesheet" href="${asset}">`
+    `<link rel="stylesheet" href="${public_bucket_url}${asset}">`
   ).join('') : '' : '';
 };
-
-const jsScriptTagsFromAssets = (assets, entrypoint, ...extra) => {
+const jsScriptTagsFromAssets = (assets, entrypoint, extra = '') => {
   return assets[entrypoint] ? assets[entrypoint].js ?
   assets[entrypoint].js.map(asset=>
-    `<script src="${asset}" ${extra.join(" ")}></script>`
+    `<script src="${public_bucket_url}${asset}"${extra}></script>`
   ).join('') : '' : '';
 };
 
