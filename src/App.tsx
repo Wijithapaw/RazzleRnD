@@ -8,13 +8,6 @@ function App() {
 
   const history = useHistory();
 
-  useEffect(() => {
-    const authToken = localStorage.getItem("AUTH_TOKEN");
-    if(!authToken) {
-      history.push("/login");
-    }
-  })
-
   return (
     <Switch>
       <Route path="/login" exact component={LoginPage} />

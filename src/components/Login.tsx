@@ -3,7 +3,7 @@ import { useHistory } from "react-router";
 import { authService } from "../services/auth.services";
 
 const Login = () => {
-  const [username, setUsername] = useState("superadmin@yopmail.com");
+  const [username, setUsername] = useState("ace.abz@gmail.comtest");
   const [password, setPassword] = useState("Pwd123");
 
   const history = useHistory();

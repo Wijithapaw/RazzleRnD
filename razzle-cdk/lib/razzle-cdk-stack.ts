@@ -44,21 +44,23 @@ export class RazzleCdkStack extends ModeStack {
     /**
      * Environment Variables for SSR Function
      */
-    const environmentKeys = [
-      'NODE_ENV',
-    ];
-    const environmentSecret = SecretsManager.Secret.fromSecretAttributes(
-      this,
-      `WijiTestRazzleAppEnvironmentSecret${this.Mode}`,
-      {
-        secretArn: getParam(this, `WijiTestRazzleAppSecretsArn${this.Mode}`),
-      },
-    );
+    // const environmentKeys = [
+    //   'NODE_ENV',
+    // ];
+    // const environmentSecret = SecretsManager.Secret.fromSecretAttributes(
+    //   this,
+    //   `WijiTestRazzleAppEnvironmentSecret${this.Mode}`,
+    //   {
+    //     secretArn: getParam(this, `WijiTestRazzleAppSecretsArn${this.Mode}`),
+    //   },
+    // );
     let environment: { [key: string]: string } = {};
-    for (const key of environmentKeys) {
-      environment[key] = environmentSecret.secretValueFromJson(key).toString();
-    }
+
+    // for (const key of environmentKeys) {
+    //   environment[key] = environmentSecret.secretValueFromJson(key).toString();
+    // }
     environment['PUBLIC_BUCKET_DOMAIN'] = bucketPublicFiles.bucketRegionalDomainName;
+    environment['NODE_ENV'] = "development";
     /**
      * Razzle SSR Function
      */
