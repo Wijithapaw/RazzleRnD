@@ -40,7 +40,7 @@ const jsScriptTagsFromAssets = (assets, entrypoint, extra = "") => {
 
 export const renderApp = (req, res, data, path) => {
   setInitialData(data)
-  const initialDataKey = getInitialDataKey(path);
+  const initialDataKey = getInitialDataKey(path || '');
 
   const context = {};
   const markup = renderToString(
@@ -93,8 +93,9 @@ server
 
     const match = matches.filter(m => !!m)[0];    
 
-    Promise.all(promises).then((data) => {      
-      const { context, html } = renderApp(req, res, data[0], match.route.path);
+    Promise.all(promises).then((data) => {    
+      console.log('server promise: ', data, match);  
+      const { context, html } = renderApp(req, res, data[0], match?.route.path);
       if (context.url) {
         res.redirect(context.url);
       } else {

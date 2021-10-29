@@ -26,7 +26,6 @@ function loadDummyPricingMatrixData() {
   return Promise.resolve(sampleData);
 }
 
-
 function loadDummyPricingMatrixData2() {
   const sampleData = [
     {

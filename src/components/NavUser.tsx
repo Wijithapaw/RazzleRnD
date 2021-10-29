@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from "react";
+import { useHistory, useLocation } from "react-router";
 
 const NavUser = () => {
+  const history = useHistory();
+
   const [isLoggedIn, setLoggedIn] = useState(false);
 
   useEffect(() => {
@@ -16,7 +19,7 @@ const NavUser = () => {
 
   const handleSignIn = (e: any) => {
     e.preventDefault();
-    window.location.replace("/login");
+    history.push("/login");
   };
 
   return isLoggedIn ? (
