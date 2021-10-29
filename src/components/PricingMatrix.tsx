@@ -1,19 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { orderService } from "../services/order.service";
 
-const PricingMatrix = () => {
-  var [pricingMatrix, setPricingMatrix] = useState<any[]>();
+interface Props {
+  data: any[];
+}
 
-  useEffect(() => {
-    orderService
-      .getPricingMatrix()
-      .then((values: any) => {
-        setPricingMatrix(values);
-        console.log(values);
-      })
-      .catch((err) => console.log(err));
-  }, []);
-
+const PricingMatrix = ({ data }: Props) => {
   return (
     <table>
       <tbody>
@@ -22,14 +14,13 @@ const PricingMatrix = () => {
           <th>2 Meals</th>
           <th>3 Meals</th>
         </tr>
-        {pricingMatrix &&
-          pricingMatrix.map((m) => (
-            <tr key={"id_" + m.dateRange}>
-              <td>{m.dateRange}</td>
-              <td>{m.meals_2}</td>
-              <td>{m.meals_3}</td>
-            </tr>
-          ))}
+        {(data).map((m) => (
+          <tr key={"id_" + m.dateRange}>
+            <td>{m.dateRange}</td>
+            <td>{m.meals_2}</td>
+            <td>{m.meals_3}</td>
+          </tr>
+        ))}
       </tbody>
     </table>
   );

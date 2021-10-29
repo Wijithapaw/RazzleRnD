@@ -1,5 +1,6 @@
 import axios, { AxiosRequestConfig, Method } from "axios";
 import * as queryString from "query-string";
+import { isServer } from "../utils/common.utils";
 
 console.log("API URL: " + process.env.RAZZLE_API_URL);
 console.log("Node ENV: " + process.env.NODE_ENV);
@@ -161,7 +162,7 @@ function createRequestOptions(
   data: any,
   responseType?: any
 ) {
-  const authToken = localStorage.getItem("AUTH_TOKEN");
+  const authToken = !isServer ? localStorage.getItem("AUTH_TOKEN") : undefined;
 
   const options: AxiosRequestConfig = {
     url,
