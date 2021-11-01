@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useHistory } from "react-router";
 import { authService } from "../services/auth.services";
+import { storageService } from "../services/storage.service";
 
 const Login = () => {
   const [username, setUsername] = useState("ace.abz@gmail.comtest");
@@ -16,7 +17,7 @@ const Login = () => {
       .then((result: any) => {
         console.log(result);
         if (result.succeeded) {
-          localStorage.setItem("AUTH_TOKEN", result.authToken);
+          storageService.setItem("AUTH_TOKEN", result.authToken);
           history.push("/");
         } else {
           alert("Invalid login");

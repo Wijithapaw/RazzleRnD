@@ -19,7 +19,8 @@ const NavUser = () => {
 
   const handleSignIn = (e: any) => {
     e.preventDefault();
-    history.push("/login");
+    //history.push("/login");
+    window.location.replace("/login")
   };
 
   return isLoggedIn ? (

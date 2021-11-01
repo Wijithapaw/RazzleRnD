@@ -30,41 +30,41 @@ const MainLayout = ({initialData}: Props) => {
   const location = useLocation();
   const history = useHistory();
 
-  // useEffect(() => {
-  //   console.log("Main Laylout tId: " + tenantId);
-  //   if (tenantId) {
-  //     const isValidTenant = cities.some(
-  //       (c) => c.code.toLowerCase() === tenantId.toLowerCase()
-  //     );
-  //     if (isValidTenant) {
-  //       console.log("valid tenant");
-  //       if (selectedCity?.toLowerCase() !== tenantId.toLowerCase()) {
-  //         setSelectedCity(tenantId.toUpperCase());
-  //       }
-  //     } else {
-  //       console.log("invalid tenant code or missing tenant code");
-  //       var path = location.pathname;
-  //       const defaultTenantId = cities[0].code.toLowerCase();
-  //       history.push(`/${defaultTenantId}${path}`);
-  //       window.location.reload();
-  //     }
-  //   } else {
-  //     console.log("No tenant code in url");
-  //     const defaultTenantId = cities[0].code.toLowerCase();
-  //     history.push(`${defaultTenantId}`);
-  //     window.location.reload();
-  //   }
-  // }, [tenantId]);
+  useEffect(() => {
+    console.log("Main Laylout tId: " + tenantId);
+    if (tenantId) {
+      const isValidTenant = cities.some(
+        (c) => c.code.toLowerCase() === tenantId.toLowerCase()
+      );
+      if (isValidTenant) {
+        console.log("valid tenant");
+        if (selectedCity?.toLowerCase() !== tenantId.toLowerCase()) {
+          setSelectedCity(tenantId.toUpperCase());
+        }
+      } else {
+        console.log("invalid tenant code or missing tenant code");
+        var path = location.pathname;
+        const defaultTenantId = cities[0].code.toLowerCase();
+        //history.push(`/${defaultTenantId}${path}`);
+        //window.location.reload();
+        window.location.replace(`/${defaultTenantId}${path}`);
+      }
+    } else {
+      console.log("No tenant code in url");
+      const defaultTenantId = cities[0].code.toLowerCase();
+      //history.push(`${defaultTenantId}`);
+      //window.location.reload();
+      window.location.replace(`/${defaultTenantId}`);
+    }
+  }, [tenantId]);
 
   const handleCityChange = (city: string, path: string) => {
     console.log("city changed");
-
-    //history.push(`/${city.toLowerCase()}${path}`);
-    //window.location.reload();
+    window.location.replace(`/${city.toLowerCase()}${path}`);
   };
 
   return (
-    // <AppRouter basename={`/${tenantId}`}>
+  <AppRouter basename={`/${tenantId}`}>
     <div
       style={{
         display: "flex",
@@ -104,7 +104,7 @@ const MainLayout = ({initialData}: Props) => {
             const Element = r.component;
             return (
               <Route key={r.name} path={r.path} exact={r.exact}>
-                <Element /*initialData={initialData} */ />
+                <Element />
               </Route>
             );
           })}
@@ -116,7 +116,7 @@ const MainLayout = ({initialData}: Props) => {
         </Switch>
       </div>
     </div>
-    // </AppRouter>
+   </AppRouter>
   );
 };
 

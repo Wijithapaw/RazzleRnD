@@ -3,10 +3,19 @@ import React from "react";
 import { StaticRouter, matchPath } from "react-router-dom";
 import express from "express";
 import { renderToString } from "react-dom/server";
-import routes from "./routes";
-import { setInitialData, getInitialDataKey } from './utils/ssr-helper.utils';
+import routes, { commonRoutes } from "./routes";
+import { setInitialData, getInitialDataKey } from "./utils/ssr-helper.utils";
+import { cities } from "./components/CityPicker";
 
 const assets = require(process.env.RAZZLE_ASSETS_MANIFEST);
+
+const routes2 = routes.map((r) => {
+  const x = { ...r, originalPath: r.path };
+  x.path = `/:tenantCode${x.path}`;
+  return x;
+});
+
+//console.log('routes', routes2);
 
 const public_bucket_domain = process.env.PUBLIC_BUCKET_DOMAIN || "";
 const public_bucket_url = public_bucket_domain
@@ -38,9 +47,26 @@ const jsScriptTagsFromAssets = (assets, entrypoint, extra = "") => {
     : "";
 };
 
-export const renderApp = (req, res, data, path) => {
-  setInitialData(data)
-  const initialDataKey = getInitialDataKey(path || '');
+export const renderApp = (req, res, data, match) => {
+  // if (!match) {
+  //   console.log("no match found - server redirection");
+  //   return { context: { url: "/lon" } };
+  // } else {
+  //   console.log("match found", match);
+  //   const tenantCode = match.match.params.tenantCode;
+  //   const isValidTenant = cities.some(
+  //     (c) => c.code.toLowerCase() === tenantCode.toLowerCase()
+  //   );
+
+  //   if (!isValidTenant) {
+  //     var path = match.match.url;
+  //     const defaultTenantId = cities[0].code.toLowerCase();
+  //     return { context: { url: `/${defaultTenantId}${path}` } };
+  //   }
+  // }
+
+  setInitialData(data);
+  const initialDataKey = getInitialDataKey(match?.route.originalPath || "");
 
   const context = {};
   const markup = renderToString(
@@ -64,6 +90,7 @@ export const renderApp = (req, res, data, path) => {
       <script>window.${initialDataKey}=${JSON.stringify(data)}</script>    
   </body>
 </html>`;
+  console.log("context", context);
   return { context, html };
 };
 
@@ -72,10 +99,22 @@ server
   .disable("x-powered-by")
   .use(express.static(process.env.RAZZLE_PUBLIC_DIR))
   .get("/*", (req, res) => {
-    console.log('In Server');
-    const matches = routes.map((route, index) => {
-      const match = matchPath(req.url, route);
 
+    const isCommonRoute = commonRoutes.map(route => matchPath(req.url, route)).some(m => !!m);
+
+    if(isCommonRoute){
+      const { context, html } = renderApp(req, res);
+        if (context.url) {
+          res.redirect(context.url);
+        } else {
+          //console.log('html', html);
+          res.status(200).send(html);
+          return;
+        }
+    }
+
+    const matches = routes2.map((route, index) => {
+      const match = matchPath(req.url, route);
       if (match) {
         const obj = {
           route,
@@ -89,23 +128,54 @@ server
       return null;
     });
 
-    const promises = matches.filter(m => !!m).map((match) => (match ? match.promise : null));
+    const promises = matches
+      .filter((m) => !!m)
+      .map((match) => (match ? match.promise : null));
+    const match = matches.filter((m) => !!m)[0];
 
-    const match = matches.filter(m => !!m)[0];    
+    console.log("#########################################################");
+    console.log("match", match);
 
-    Promise.all(promises).then((data) => {    
-      console.log('server promise: ', data, match);  
-      const { context, html } = renderApp(req, res, data[0], match?.route.path);
-      if (context.url) {
-        res.redirect(context.url);
-      } else {
-        res.status(200).send(html);
+    if (!match) {
+      console.log("no match found - server redirection");
+      res.redirect("/lon");
+    } else {
+      console.log("match found", match);
+      const tenantCode = match.match.params.tenantCode;
+      const isValidTenant = cities.some(
+        (c) => c.code.toLowerCase() === tenantCode.toLowerCase()
+      );
+  
+      if (!isValidTenant) {
+        var path = match.match.url;
+        const defaultTenantId = cities[0].code.toLowerCase();
+        res.redirect(`/${defaultTenantId}${path}`);
       }
+    }
 
-    }).catch(error => {
-      console.log('Error in server rendering', error);
-      res.status(500).json({error: error.message, stack: error.stack});
-    });
+    // if (!match) {
+    //   console.log("no match found - server redirection");
+    //   res.redirect("/lon/pricing");
+    // } else {
+    Promise.all(promises)
+      .then((data) => {
+        //console.log("server promise: ", data, match);
+        console.log(new Date());
+
+        const { context, html } = renderApp(req, res, data[0], match);
+        if (context.url) {
+          console.log("redirect", context.url);
+          res.redirect(context.url);
+        } else {
+          //console.log('html', html);
+          res.status(200).send(html);
+        }
+      })
+      .catch((error) => {
+        console.log("Error in server rendering", error);
+        res.status(500).json({ error: error.message, stack: error.stack });
+      });
+    //}
   });
 
 export default server;
