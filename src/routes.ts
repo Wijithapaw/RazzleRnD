@@ -1,3 +1,4 @@
+import { loadOrdersInitialData } from "./components/OrderList";
 import AboutPage from "./pages/AboutPage";
 import HomePage, {
   loadHomePagePricingMatrixInitialData,
@@ -25,6 +26,7 @@ const routes = [
     component: OrdersPage,
     name: "Orders",
     exact: true,
+    initialData: loadOrdersInitialData,
   },
   {
     path: "/pricing",

@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router";
 import PricingMatrix from "../components/PricingMatrix";
-import { clearServerLoadedData, getInitialData } from "../utils/ssr-helper.utils";
+import {
+  clearServerLoadedData,
+  getInitialData,
+} from "../utils/ssr-helper.utils";
 
 function loadDummyPricingMatrixData() {
   const sampleData = [
@@ -78,7 +81,8 @@ const HomePage = () => {
 
   return (
     <div>
-      This is home page 4 <PricingMatrix data={pricingMatrix} />
+      <p>This is home page</p>
+      <PricingMatrix data={pricingMatrix} />
     </div>
   );
 };

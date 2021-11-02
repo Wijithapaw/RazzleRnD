@@ -4,7 +4,8 @@ import OrderList from "../components/OrderList";
 const OrdersPage = () => {
   return (
     <div>
-      This is Orders page <OrderList />
+      <p>This is Orders page</p>
+      <OrderList />
     </div>
   );
 };

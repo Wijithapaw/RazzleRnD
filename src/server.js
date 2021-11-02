@@ -6,6 +6,9 @@ import { renderToString } from "react-dom/server";
 import routes, { commonRoutes } from "./routes";
 import { setInitialData, getInitialDataKey } from "./utils/ssr-helper.utils";
 import { cities } from "./components/CityPicker";
+import { storageService } from "./services/storage.service";
+import { setServerCookies2, cookieStorageService } from "./services/cookie-storage.service";
+import Cookies from 'universal-cookie';
 
 const assets = require(process.env.RAZZLE_ASSETS_MANIFEST);
 
@@ -14,8 +17,6 @@ const routes2 = routes.map((r) => {
   x.path = `/:tenantCode${x.path}`;
   return x;
 });
-
-//console.log('routes', routes2);
 
 const public_bucket_domain = process.env.PUBLIC_BUCKET_DOMAIN || "";
 const public_bucket_url = public_bucket_domain
@@ -48,23 +49,6 @@ const jsScriptTagsFromAssets = (assets, entrypoint, extra = "") => {
 };
 
 export const renderApp = (req, res, data, match) => {
-  // if (!match) {
-  //   console.log("no match found - server redirection");
-  //   return { context: { url: "/lon" } };
-  // } else {
-  //   console.log("match found", match);
-  //   const tenantCode = match.match.params.tenantCode;
-  //   const isValidTenant = cities.some(
-  //     (c) => c.code.toLowerCase() === tenantCode.toLowerCase()
-  //   );
-
-  //   if (!isValidTenant) {
-  //     var path = match.match.url;
-  //     const defaultTenantId = cities[0].code.toLowerCase();
-  //     return { context: { url: `/${defaultTenantId}${path}` } };
-  //   }
-  // }
-
   setInitialData(data);
   const initialDataKey = getInitialDataKey(match?.route.originalPath || "");
 
@@ -90,7 +74,7 @@ export const renderApp = (req, res, data, match) => {
       <script>window.${initialDataKey}=${JSON.stringify(data)}</script>    
   </body>
 </html>`;
-  console.log("context", context);
+
   return { context, html };
 };
 
@@ -100,21 +84,31 @@ server
   .use(express.static(process.env.RAZZLE_PUBLIC_DIR))
   .get("/*", (req, res) => {
 
-    const isCommonRoute = commonRoutes.map(route => matchPath(req.url, route)).some(m => !!m);
+    const cookies = new Cookies(req.headers.cookie);
 
-    if(isCommonRoute){
+    setServerCookies2(cookies);
+
+    const authToken2 = cookieStorageService.getItem('AUTH_TOKEN');
+    //console.log('authToken2', authToken2);
+    //console.log('RAZZLE_DEMO_AUTH_TOKEN', cookies.get('RAZZLE_DEMO_AUTH_TOKEN'));
+
+    const isCommonRoute = commonRoutes
+      .map((route) => matchPath(req.path, route))
+      .some((m) => !!m);
+
+    if (isCommonRoute) {
       const { context, html } = renderApp(req, res);
-        if (context.url) {
-          res.redirect(context.url);
-        } else {
-          //console.log('html', html);
-          res.status(200).send(html);
-          return;
-        }
+      if (context.url) {
+        res.redirect(context.url);
+      } else {
+        //console.log('html', html);
+        res.status(200).send(html);
+        return;
+      }
     }
 
     const matches = routes2.map((route, index) => {
-      const match = matchPath(req.url, route);
+      const match = matchPath(req.path, route);
       if (match) {
         const obj = {
           route,
@@ -137,7 +131,7 @@ server
     console.log("match", match);
 
     if (!match) {
-      console.log("no match found - server redirection");
+      //console.log("no match found - server redirection");
       res.redirect("/lon");
     } else {
       console.log("match found", match);
@@ -145,13 +139,16 @@ server
       const isValidTenant = cities.some(
         (c) => c.code.toLowerCase() === tenantCode.toLowerCase()
       );
-  
+
       if (!isValidTenant) {
         var path = match.match.url;
         const defaultTenantId = cities[0].code.toLowerCase();
         res.redirect(`/${defaultTenantId}${path}`);
       }
     }
+
+    //const authToken = storageService.getItem("AUTH_TOKEN");
+    //console.log("AUTH_TOKEN", authToken);
 
     // if (!match) {
     //   console.log("no match found - server redirection");
@@ -164,9 +161,10 @@ server
 
         const { context, html } = renderApp(req, res, data[0], match);
         if (context.url) {
-          console.log("redirect", context.url);
+          //console.log("redirect", context.url);
           res.redirect(context.url);
         } else {
+          //console.log('match', match);
           //console.log('html', html);
           res.status(200).send(html);
         }

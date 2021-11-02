@@ -4,18 +4,18 @@ import { authService } from "../services/auth.services";
 import { storageService } from "../services/storage.service";
 
 const Login = () => {
-  const [username, setUsername] = useState("ace.abz@gmail.comtest");
+  const [username, setUsername] = useState("aaishadadral@me.comtest");
   const [password, setPassword] = useState("Pwd123");
 
   const history = useHistory();
 
   const handleSubmit = (e: any) => {
     e.preventDefault();
-    console.log({ username, password });
+    //console.log({ username, password });
     authService
       .login(username, password)
       .then((result: any) => {
-        console.log(result);
+        //console.log(result);
         if (result.succeeded) {
           storageService.setItem("AUTH_TOKEN", result.authToken);
           history.push("/");

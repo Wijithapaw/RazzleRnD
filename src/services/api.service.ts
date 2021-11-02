@@ -163,7 +163,7 @@ function createRequestOptions(
   data: any,
   responseType?: any
 ) {
-  const authToken = !isServer ? storageService.getItem("AUTH_TOKEN") : undefined;
+  const authToken = storageService.getItem("AUTH_TOKEN") ?? undefined;
 
   const options: AxiosRequestConfig = {
     url,

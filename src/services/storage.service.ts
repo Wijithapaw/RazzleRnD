@@ -1,6 +1,7 @@
 import { isServer } from "../utils/common.utils";
+import { cookieStorageService } from "./cookie-storage.service";
 
-export const storageService = {
+const localStorageService = {
   getItem,
   setItem,
   clearItem,
@@ -24,3 +25,6 @@ function setItem(key: string, value: string) {
 function clearItem(key: string) {
   storage.removeItem(storageKey(key));
 }
+
+
+export const storageService = cookieStorageService; // cookieStorageService | localStorageService
