@@ -12,13 +12,9 @@ import {
 import AppRouter from "../components/AppRouter";
 import CityPicker from "../components/CityPicker";
 import NavUser from "../components/NavUser";
-// import AboutPage from "./AboutPage";
-// import HomePage from "./HomePage";
-// import NotFoundPage from "./NotFoundPage";
-// import PricingPage from "./PricingPage";
-// import OrdersPage from "./OrdersPage";
 import routes from "../routes";
 import { cookieStorageService } from "../services/cookie-storage.service";
+import NotFoundPage from "./NotFoundPage";
 
 interface Props {
   initialData?: any[];
@@ -114,11 +110,7 @@ const MainLayout = ({ initialData }: Props) => {
                 </Route>
               );
             })}
-            <Redirect
-              to={{
-                pathname: "/not-found",
-              }}
-            />
+            <Route path="/" component={() => <NotFoundPage />} />
           </Switch>
         </div>
       </div>
