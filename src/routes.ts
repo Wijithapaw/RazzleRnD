@@ -5,6 +5,7 @@ import HomePage, {
 } from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import OrdersPage from "./pages/OrdersPage";
+import NotFoundPage from "./pages/NotFoundPage";
 import PricingPage, { loadPricingMatrixInitialData } from "./pages/PricingPage";
 
 const routes = [
@@ -34,6 +35,12 @@ const routes = [
     name: "Pricing",
     exact: true,
     initialData: loadPricingMatrixInitialData,
+  },
+  {
+    path: "/not-found",
+    component: NotFoundPage,
+    name: "Not Found",
+    exact: true,
   },
 ];
 

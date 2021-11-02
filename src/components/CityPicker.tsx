@@ -1,11 +1,13 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
+import { cookieStorageService } from "../services/cookie-storage.service";
+import { tenantService } from "../services/tenant.service";
 
-export const cities = [
-  { code: "LON", name: "London" },
-  { code: "COL", name: "Colombo" },
-  { code: "GALLE", name: "Galle" },
-];
+function getTenantsFromCookies(): any[] {
+  const allTenantsJson = cookieStorageService.getItem("ALL_TENANTS");
+  if (!allTenantsJson) return [];
+  return allTenantsJson;
+}
 
 interface Props {
   onChange: (city: string, currentPath: string) => void;
@@ -13,6 +15,8 @@ interface Props {
 }
 
 const CityPicker = ({ selectedCity, onChange }: Props) => {
+  const [tenants,] = useState(getTenantsFromCookies());
+
   const location = useLocation();
 
   const handleSelect = (e: any) => {
@@ -21,7 +25,7 @@ const CityPicker = ({ selectedCity, onChange }: Props) => {
 
   return (
     <select onChange={handleSelect} value={selectedCity}>
-      {cities.map((c) => (
+      {tenants.map((c) => (
         <option key={c.code} value={c.code}>
           {c.name}
         </option>

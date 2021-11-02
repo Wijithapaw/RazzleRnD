@@ -1,14 +1,13 @@
-import App, { sampleData } from "./App";
+import App from "./App";
 import React from "react";
 import { StaticRouter, matchPath } from "react-router-dom";
 import express from "express";
 import { renderToString } from "react-dom/server";
 import routes, { commonRoutes } from "./routes";
 import { setInitialData, getInitialDataKey } from "./utils/ssr-helper.utils";
-import { cities } from "./components/CityPicker";
-import { storageService } from "./services/storage.service";
-import { setServerCookies2, cookieStorageService } from "./services/cookie-storage.service";
-import Cookies from 'universal-cookie';
+import { cookieStorageService } from "./services/cookie-storage.service";
+import cookiesMiddleware from "universal-cookie-express";
+import { accountService } from "./services/account.service";
 
 const assets = require(process.env.RAZZLE_ASSETS_MANIFEST);
 
@@ -48,9 +47,9 @@ const jsScriptTagsFromAssets = (assets, entrypoint, extra = "") => {
     : "";
 };
 
-export const renderApp = (req, res, data, match) => {
+export const renderApp = (req, res, data, path) => {
   setInitialData(data);
-  const initialDataKey = getInitialDataKey(match?.route.originalPath || "");
+  const initialDataKey = getInitialDataKey(path || "");
 
   const context = {};
   const markup = renderToString(
@@ -82,15 +81,9 @@ const server = express();
 server
   .disable("x-powered-by")
   .use(express.static(process.env.RAZZLE_PUBLIC_DIR))
-  .get("/*", (req, res) => {
-
-    const cookies = new Cookies(req.headers.cookie);
-
-    setServerCookies2(cookies);
-
-    const authToken2 = cookieStorageService.getItem('AUTH_TOKEN');
-    //console.log('authToken2', authToken2);
-    //console.log('RAZZLE_DEMO_AUTH_TOKEN', cookies.get('RAZZLE_DEMO_AUTH_TOKEN'));
+  .use(cookiesMiddleware())
+  .get("/*", async (req, res) => {
+    cookieStorageService.setServerCookies(req.universalCookies);
 
     const isCommonRoute = commonRoutes
       .map((route) => matchPath(req.path, route))
@@ -101,13 +94,38 @@ server
       if (context.url) {
         res.redirect(context.url);
       } else {
-        //console.log('html', html);
         res.status(200).send(html);
         return;
       }
     }
 
-    const matches = routes2.map((route, index) => {
+    const userId = cookieStorageService.getItem("USER_ID") || undefined;
+
+    var tenants = await accountService.getRelatedTenants(userId);
+    cookieStorageService.setItem("ALL_TENANTS", JSON.stringify(tenants));
+
+    const tenantRouteMatch = matchPath(req.path, { path: "/:tenantCode" });
+
+    if (
+      !tenantRouteMatch ||
+      !tenants.some(
+        (t) =>
+          t.code.toLowerCase() ===
+          tenantRouteMatch.params.tenantCode.toLowerCase()
+      )
+    ) {
+      let defaultTenant =
+        cookieStorageService.getItem("TENANT") || tenants[0].code.toLowerCase(); //TODO: get default tenant based on location
+
+      const path = tenantRouteMatch?.url || "";
+      res.redirect(`/${defaultTenant.toLowerCase()}${path}`);
+      return;
+    }
+
+    const tenantCode = tenantRouteMatch.params.tenantCode;
+    cookieStorageService.setItem("TENANT", tenantCode.toUpperCase());
+
+    const matcheObjs = routes2.map((route, index) => {
       const match = matchPath(req.path, route);
       if (match) {
         const obj = {
@@ -122,50 +140,25 @@ server
       return null;
     });
 
-    const promises = matches
+    const promises = matcheObjs
       .filter((m) => !!m)
-      .map((match) => (match ? match.promise : null));
-    const match = matches.filter((m) => !!m)[0];
+      .map((mo) => (mo ? mo.promise : null));
 
-    console.log("#########################################################");
-    console.log("match", match);
+    const matchObj = matcheObjs.filter((m) => !!m)[0];
 
-    if (!match) {
-      //console.log("no match found - server redirection");
-      res.redirect("/lon");
-    } else {
-      console.log("match found", match);
-      const tenantCode = match.match.params.tenantCode;
-      const isValidTenant = cities.some(
-        (c) => c.code.toLowerCase() === tenantCode.toLowerCase()
-      );
-
-      if (!isValidTenant) {
-        var path = match.match.url;
-        const defaultTenantId = cities[0].code.toLowerCase();
-        res.redirect(`/${defaultTenantId}${path}`);
-      }
-    }
-
-    //const authToken = storageService.getItem("AUTH_TOKEN");
-    //console.log("AUTH_TOKEN", authToken);
-
-    // if (!match) {
-    //   console.log("no match found - server redirection");
-    //   res.redirect("/lon/pricing");
-    // } else {
     Promise.all(promises)
       .then((data) => {
-        //console.log("server promise: ", data, match);
-        console.log(new Date());
+        console.log(new Date()); //TODO: Remove this after testing
 
-        const { context, html } = renderApp(req, res, data[0], match);
+        const { context, html } = renderApp(
+          req,
+          res,
+          data[0],
+          matchObj?.route.originalPath
+        );
         if (context.url) {
-          //console.log("redirect", context.url);
           res.redirect(context.url);
         } else {
-          //console.log('match', match);
-          //console.log('html', html);
           res.status(200).send(html);
         }
       })
@@ -173,7 +166,6 @@ server
         console.log("Error in server rendering", error);
         res.status(500).json({ error: error.message, stack: error.stack });
       });
-    //}
   });
 
 export default server;

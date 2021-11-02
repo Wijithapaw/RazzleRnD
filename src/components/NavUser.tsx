@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useHistory, useLocation } from "react-router";
+import { cookieStorageService } from "../services/cookie-storage.service";
+import { storageService } from "../services/storage.service";
 
 const NavUser = () => {
   const history = useHistory();
@@ -7,20 +9,23 @@ const NavUser = () => {
   const [isLoggedIn, setLoggedIn] = useState(false);
 
   useEffect(() => {
-    const authToken = localStorage.getItem("AUTH_TOKEN");
+    const authToken = storageService.getItem("AUTH_TOKEN");
     setLoggedIn(!!authToken);
   }, []);
 
   const handleSignOut = (e: any) => {
     e.preventDefault();
-    localStorage.removeItem("AUTH_TOKEN");
-    setLoggedIn(false);
+
+    storageService.clearItem("AUTH_TOKEN");
+    cookieStorageService.clearItem("USER_ID");
+
+    window.location.replace("/");
   };
 
   const handleSignIn = (e: any) => {
     e.preventDefault();
     //history.push("/login");
-    window.location.replace("/login")
+    window.location.replace("/login");
   };
 
   return isLoggedIn ? (

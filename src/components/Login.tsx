@@ -1,24 +1,28 @@
 import React, { useState } from "react";
-import { useHistory } from "react-router";
 import { authService } from "../services/auth.services";
+import { cookieStorageService } from "../services/cookie-storage.service";
 import { storageService } from "../services/storage.service";
 
 const Login = () => {
-  const [username, setUsername] = useState("aaishadadral@me.comtest");
+  const [username, setUsername] = useState("kandyadmin@yopmail.com");
   const [password, setPassword] = useState("Pwd123");
 
-  const history = useHistory();
-
   const handleSubmit = (e: any) => {
+    storageService.clearItem("AUTH_TOKEN");
+    cookieStorageService.clearItem("USER_ID");
+    cookieStorageService.clearItem("TENANT");
+
     e.preventDefault();
-    //console.log({ username, password });
     authService
       .login(username, password)
       .then((result: any) => {
-        //console.log(result);
         if (result.succeeded) {
           storageService.setItem("AUTH_TOKEN", result.authToken);
-          history.push("/");
+          cookieStorageService.setItem("USER_ID", result.user.id);
+          if (result.defaultTenant)
+            cookieStorageService.setItem("TENANT", result.defaultTenant);
+
+          window.location.replace("/");
         } else {
           alert("Invalid login");
         }

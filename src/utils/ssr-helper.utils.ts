@@ -9,7 +9,6 @@ export function setInitialData(data) {
 export function clearServerLoadedData(path: string) {
     const dataKey = getInitialDataKey(path);
     if(!isServer && window[dataKey]) {
-        //console.log('clearing serer loaded data', window[dataKey]);        
         window[dataKey] = undefined;
     }
 }
@@ -17,10 +16,8 @@ export function clearServerLoadedData(path: string) {
 export function getInitialData(path: string) {
     const dataKey = getInitialDataKey(path);
     if(!isServer && window[dataKey]) {
-        //console.log('client initial data', window[dataKey]);        
         return window[dataKey];
     }
-    //console.log('server initial data', initialData);
     return initialData
 }
 

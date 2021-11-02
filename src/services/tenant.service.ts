@@ -1,13 +1,10 @@
+import { apiService } from "./api.service";
+
 export const tenantService = {
   getAllTenants,
 };
 
 function getAllTenants() {
-  const cities = [
-    { code: "LON", name: "London" },
-    { code: "COL", name: "Colombo" },
-    { code: "GALLE", name: "Galle" },
-  ];
-
-  return Promise.resolve(cities);
+    return apiService.get<any[]>("Tenants", "Active/ListItems")
+        .then(tenants => (tenants.map(t => ({code: t.key, name: t.value}))));
 }

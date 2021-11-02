@@ -1,6 +1,7 @@
 import axios, { AxiosRequestConfig, Method } from "axios";
 import * as queryString from "query-string";
 import { isServer } from "../utils/common.utils";
+import { cookieStorageService } from "./cookie-storage.service";
 import { storageService } from "./storage.service";
 
 console.log("API URL: " + process.env.RAZZLE_API_URL);
@@ -163,7 +164,8 @@ function createRequestOptions(
   data: any,
   responseType?: any
 ) {
-  const authToken = storageService.getItem("AUTH_TOKEN") ?? undefined;
+  const authToken =  !isServer ? storageService.getItem("AUTH_TOKEN") : undefined;
+  const tenantCode = cookieStorageService.getItem("TENANT") || "";
 
   const options: AxiosRequestConfig = {
     url,
@@ -172,6 +174,7 @@ function createRequestOptions(
     headers: {
       Authorization: "bearer " + authToken,
       "Client-Application": "WEB",
+      "x-tenant": tenantCode,
     },
   };
 

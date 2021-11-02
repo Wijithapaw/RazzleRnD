@@ -10,53 +10,56 @@ import {
   Redirect,
 } from "react-router-dom";
 import AppRouter from "../components/AppRouter";
-import CityPicker, { cities } from "../components/CityPicker";
+import CityPicker from "../components/CityPicker";
 import NavUser from "../components/NavUser";
-import AboutPage from "./AboutPage";
-import HomePage from "./HomePage";
-import NotFoundPage from "./NotFoundPage";
-import PricingPage from "./PricingPage";
-import OrdersPage from "./OrdersPage";
+// import AboutPage from "./AboutPage";
+// import HomePage from "./HomePage";
+// import NotFoundPage from "./NotFoundPage";
+// import PricingPage from "./PricingPage";
+// import OrdersPage from "./OrdersPage";
 import routes from "../routes";
+import { cookieStorageService } from "../services/cookie-storage.service";
 
 interface Props {
   initialData?: any[];
 }
 
-const MainLayout = ({initialData}: Props) => {
-  const [selectedCity, setSelectedCity] = useState<string>();
+const MainLayout = ({ initialData }: Props) => {
+  const [selectedCity, setSelectedCity] = useState<string>(
+    cookieStorageService.getItem("TENANT")
+  );
 
   const { tenantId } = useParams<any>();
   const location = useLocation();
   const history = useHistory();
 
-  useEffect(() => {
-    console.log("Main Laylout tId: " + tenantId);
-    if (tenantId) {
-      const isValidTenant = cities.some(
-        (c) => c.code.toLowerCase() === tenantId.toLowerCase()
-      );
-      if (isValidTenant) {
-        console.log("valid tenant");
-        if (selectedCity?.toLowerCase() !== tenantId.toLowerCase()) {
-          setSelectedCity(tenantId.toUpperCase());
-        }
-      } else {
-        console.log("invalid tenant code or missing tenant code");
-        var path = location.pathname;
-        const defaultTenantId = cities[0].code.toLowerCase();
-        //history.push(`/${defaultTenantId}${path}`);
-        //window.location.reload();
-        window.location.replace(`/${defaultTenantId}${path}`);
-      }
-    } else {
-      console.log("No tenant code in url");
-      const defaultTenantId = cities[0].code.toLowerCase();
-      //history.push(`${defaultTenantId}`);
-      //window.location.reload();
-      window.location.replace(`/${defaultTenantId}`);
-    }
-  }, [tenantId]);
+  // useEffect(() => {
+  //   console.log("Main Laylout tId: " + tenantId);
+  //   if (tenantId) {
+  //     const isValidTenant = cities.some(
+  //       (c) => c.code.toLowerCase() === tenantId.toLowerCase()
+  //     );
+  //     if (isValidTenant) {
+  //       console.log("valid tenant");
+  //       if (selectedCity?.toLowerCase() !== tenantId.toLowerCase()) {
+  //         setSelectedCity(tenantId.toUpperCase());
+  //       }
+  //     } else {
+  //       console.log("invalid tenant code or missing tenant code");
+  //       var path = location.pathname;
+  //       const defaultTenantId = cities[0].code.toLowerCase();
+  //       //history.push(`/${defaultTenantId}${path}`);
+  //       //window.location.reload();
+  //       window.location.replace(`/${defaultTenantId}${path}`);
+  //     }
+  //   } else {
+  //     console.log("No tenant code in url");
+  //     const defaultTenantId = cities[0].code.toLowerCase();
+  //     //history.push(`${defaultTenantId}`);
+  //     //window.location.reload();
+  //     window.location.replace(`/${defaultTenantId}`);
+  //   }
+  // }, [tenantId]);
 
   const handleCityChange = (city: string, path: string) => {
     console.log("city changed");
@@ -64,59 +67,62 @@ const MainLayout = ({initialData}: Props) => {
   };
 
   return (
-  <AppRouter basename={`/${tenantId}`}>
-    <div
-      style={{
-        display: "flex",
-        flex: 1,
-        flexDirection: "column",
-        height: "100vh",
-      }}
-    >
-      <div
-        style={{
-          display: "flex",
-          height: "50px",
-          flexDirection: "row",
-          background: "lightgray",
-        }}
-      >
-        <Link to="/">Home</Link>
-        <Link to="/about">About</Link>
-        <Link to="/pricing">Pricing</Link>
-        <Link to="/orders">Orders</Link>
-        <div>
-          <CityPicker onChange={handleCityChange} selectedCity={selectedCity} />
-        </div>
-        <div>
-          <NavUser />
-        </div>
-      </div>
+    <AppRouter basename={`/${tenantId}`}>
       <div
         style={{
           display: "flex",
           flex: 1,
           flexDirection: "column",
+          height: "100vh",
         }}
       >
-        <Switch>
-          {routes.map((r) => {
-            const Element = r.component;
-            return (
-              <Route key={r.name} path={r.path} exact={r.exact}>
-                <Element />
-              </Route>
-            );
-          })}
-          <Redirect
-            to={{
-              pathname: "/not-found",
-            }}
-          />
-        </Switch>
+        <div
+          style={{
+            display: "flex",
+            height: "50px",
+            flexDirection: "row",
+            background: "lightgray",
+          }}
+        >
+          <Link to="/">Home</Link>
+          <Link to="/about">About</Link>
+          <Link to="/pricing">Pricing</Link>
+          <Link to="/orders">Orders</Link>
+          <div>
+            <CityPicker
+              onChange={handleCityChange}
+              selectedCity={selectedCity}
+            />
+          </div>
+          <div>
+            <NavUser />
+          </div>
+        </div>
+        <div
+          style={{
+            display: "flex",
+            flex: 1,
+            flexDirection: "column",
+          }}
+        >
+          <Switch>
+            {routes.map((r) => {
+              const Element = r.component;
+              return (
+                <Route key={r.name} path={r.path} exact={r.exact}>
+                  <Element />
+                </Route>
+              );
+            })}
+            <Redirect
+              to={{
+                pathname: "/not-found",
+              }}
+            />
+          </Switch>
+        </div>
       </div>
-    </div>
-   </AppRouter>
+    </AppRouter>
   );
 };
 
