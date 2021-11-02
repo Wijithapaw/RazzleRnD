@@ -8,10 +8,6 @@ const Login = () => {
   const [password, setPassword] = useState("Pwd123");
 
   const handleSubmit = (e: any) => {
-    storageService.clearItem("AUTH_TOKEN");
-    cookieStorageService.clearItem("USER_ID");
-    cookieStorageService.clearItem("TENANT");
-
     e.preventDefault();
     authService
       .login(username, password)
