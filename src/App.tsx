@@ -1,9 +1,11 @@
 import React from "react";
-import "./App.css";
+import "./App.scss";
 import MainLayout from "./pages/MainLayout";
 import { Route, Switch } from "react-router-dom";
 import LoginPage from "./pages/LoginPage";
 import { commonRoutes } from "./routes";
+
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 function App() {
   return (

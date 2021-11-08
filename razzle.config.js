@@ -2,6 +2,7 @@
 'use strict';
 const path = require('path');
 module.exports = {
+  plugins: ['scss'],
   options: {
     buildType: 'serverless'
   },
