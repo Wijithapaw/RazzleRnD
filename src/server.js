@@ -8,19 +8,31 @@ import { setInitialData, getInitialDataKey } from "./utils/ssr-helper.utils";
 import { cookieStorageService } from "./services/cookie-storage.service";
 import cookiesMiddleware from "universal-cookie-express";
 import { accountService } from "./services/account.service";
+import { ChunkExtractor } from '@loadable/server'
+import path from 'path'
 
 const assets = require(process.env.RAZZLE_ASSETS_MANIFEST);
+
+const public_bucket_domain = process.env.PUBLIC_BUCKET_DOMAIN || "";
+const public_bucket_url = public_bucket_domain
+  ? `https://${public_bucket_domain}`
+  : "";
+
+let statsFile
+let extractor
+
+if (process.env.NODE_ENV === 'production') {
+  console.log('reading statsfile for PROD');
+  statsFile = path.resolve('./build/public/loadable-stats.json');
+  console.log('statsFile', statsFile);
+  extractor = new ChunkExtractor({ statsFile, entrypoints: ['client'] });
+}
 
 const routes2 = routes.map((r) => {
   const x = { ...r, originalPath: r.path };
   x.path = `/:tenantCode${x.path}`;
   return x;
 });
-
-const public_bucket_domain = process.env.PUBLIC_BUCKET_DOMAIN || "";
-const public_bucket_url = public_bucket_domain
-  ? `https://${public_bucket_domain}`
-  : "";
 
 const cssLinksFromAssets = (assets, entrypoint) => {
   return assets[entrypoint]
@@ -47,16 +59,28 @@ const jsScriptTagsFromAssets = (assets, entrypoint, extra = "") => {
     : "";
 };
 
-export const renderApp = (req, res, data, path) => {
+export const renderApp = (req, res, data, pathname) => {
   setInitialData(data);
-  const initialDataKey = getInitialDataKey(path || "");
+  const initialDataKey = getInitialDataKey(pathname || "");
 
   const context = {};
-  const markup = renderToString(
+  const app = (
     <StaticRouter context={context} location={req.url}>
       <App />
     </StaticRouter>
   );
+
+  if (process.env.NODE_ENV === 'development') {
+    console.log('reading statsfile for DEV');
+    statsFile = path.resolve('./build/public/loadable-stats.json')
+    console.log('statsFile', statsFile);
+    extractor = new ChunkExtractor({ statsFile, entrypoints: ['client'] })
+  }
+
+  const jsx = extractor.collectChunks(app)
+  const markup = renderToString(jsx)
+  const scriptTags = extractor.getScriptTags()
+  console.log('scriptTags', scriptTags);
 
   const html = `<!doctype html>
   <html lang="">
@@ -66,10 +90,15 @@ export const renderApp = (req, res, data, path) => {
       <title>Welcome to Razzle</title>
       <meta name="viewport" content="width=device-width, initial-scale=1">
       ${cssLinksFromAssets(assets, "client")}
+      ${
+        process.env.NODE_ENV === 'production'
+          ? `<script src="${public_bucket_url}${assets.client.js}" defer></script>`
+          : `<script src="${public_bucket_url}${assets.client.js}" defer crossorigin></script>`
+        }
+      ${scriptTags}
   </head>
   <body>
       <div id="root">${markup}</div>
-      ${jsScriptTagsFromAssets(assets, "client", "defer", "crossorigin")}  
       <script>window.${initialDataKey}=${JSON.stringify(data)}</script>    
   </body>
 </html>`;

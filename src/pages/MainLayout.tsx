@@ -1,3 +1,4 @@
+import loadable from "@loadable/component";
 import React, { useEffect, useState } from "react";
 import {
   Link,
@@ -15,6 +16,8 @@ import NavUser from "../components/NavUser";
 import routes from "../routes";
 import { cookieStorageService } from "../services/cookie-storage.service";
 import NotFoundPage from "./NotFoundPage";
+
+const NotFoundPage1 = loadable(() => import('./NotFoundPage'));
 
 interface Props {
   initialData?: any[];
@@ -102,15 +105,15 @@ const MainLayout = ({ initialData }: Props) => {
           }}
         >
           <Switch>
-            {routes.map((r) => {
-              const Element = r.component;
-              return (
-                <Route key={r.name} path={r.path} exact={r.exact}>
-                  <Element />
-                </Route>
-              );
-            })}
-            <Route path="/" component={() => <NotFoundPage />} />
+            {routes.map((r) => (
+              <Route
+                key={r.name}
+                path={r.path}
+                exact={r.exact}
+                component={r.component}
+              />
+            ))}
+            <Route path="/" component={NotFoundPage1} />
           </Switch>
         </div>
       </div>

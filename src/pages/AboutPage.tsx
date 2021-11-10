@@ -4,6 +4,7 @@ import { Button } from "reactstrap";
 import "./css-classes.scss";
 import styles from "./common.module.scss";
 import styles2 from "./common2.module.css";
+// import Button from "reactstrap/types/lib/Button";
 
 const AboutPage = () => {
   const handleClick = () => {

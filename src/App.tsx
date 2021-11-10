@@ -5,17 +5,23 @@ import { Route, Switch } from "react-router-dom";
 import LoginPage from "./pages/LoginPage";
 import { commonRoutes } from "./routes";
 
-import 'bootstrap/dist/css/bootstrap.min.css';
+const MainLayout1 = loadable(() => import('./pages/MainLayout'));
+
+import "bootstrap/dist/css/bootstrap.min.css";
+import loadable from "@loadable/component";
 
 function App() {
   return (
     <Switch>
       {commonRoutes.map((r) => (
-        <Route key={r.name} path={r.path} exact={r.exact}>
-          {r.component}
-        </Route>
+        <Route
+          key={r.name}
+          path={r.path}
+          exact={r.exact}
+          component={r.component}
+        />
       ))}
-      <Route path="/:tenantId?" component={() => <MainLayout />} />
+      <Route path="/:tenantId?" component={MainLayout1} />
     </Switch>
   );
 }

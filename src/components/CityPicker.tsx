@@ -20,6 +20,8 @@ const CityPicker = ({ selectedCity, onChange }: Props) => {
   const location = useLocation();
 
   const handleSelect = (e: any) => {
+    console.log('city changing 1');
+    
     onChange(e.target.value, location.pathname);
   };
 
