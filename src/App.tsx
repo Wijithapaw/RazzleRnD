@@ -1,8 +1,9 @@
+import 'bootstrap/dist/css/bootstrap.min.css';
 import React from "react";
-import "./App.css";
-import MainLayout from "./pages/MainLayout";
 import { Route, Switch } from "react-router-dom";
+import "./App.css";
 import LoginPage from "./pages/LoginPage";
+import MainLayout from "./pages/MainLayout";
 
 function App() {
   return (

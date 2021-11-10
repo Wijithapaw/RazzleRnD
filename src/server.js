@@ -1,10 +1,11 @@
-import App, { sampleData } from "./App";
-import React from "react";
-import { StaticRouter, matchPath } from "react-router-dom";
 import express from "express";
+import React from "react";
 import { renderToString } from "react-dom/server";
+import { matchPath, StaticRouter } from "react-router-dom";
+import App from "./App";
 import routes from "./routes";
-import { setInitialData, getInitialDataKey } from './utils/ssr-helper.utils';
+import { getInitialDataKey, setInitialData } from "./utils/ssr-helper.utils";
+const path = require("path");
 
 const assets = require(process.env.RAZZLE_ASSETS_MANIFEST);
 
@@ -39,7 +40,7 @@ const jsScriptTagsFromAssets = (assets, entrypoint, extra = "") => {
 };
 
 export const renderApp = (req, res, data, path) => {
-  setInitialData(data)
+  setInitialData(data);
   const initialDataKey = getInitialDataKey(path);
 
   const context = {};
@@ -51,19 +52,26 @@ export const renderApp = (req, res, data, path) => {
 
   const html = `<!doctype html>
   <html lang="">
-  <head>
+    <head>
       <meta http-equiv="X-UA-Compatible" content="IE=edge" />
       <meta charset="utf-8" />
       <title>Welcome to Razzle</title>
       <meta name="viewport" content="width=device-width, initial-scale=1">
-      ${cssLinksFromAssets(assets, "client")}
-  </head>
-  <body>
+      ${
+        assets.client.css
+          ? `<link rel="stylesheet" href="${assets.client.css}">`
+          : ""
+      }
+      ${
+        process.env.NODE_ENV === "production"
+          ? `<script src="${assets.client.js}" defer></script>`
+          : `<script src="${assets.client.js}" defer crossorigin></script>`
+      }
+    </head>
+    <body>
       <div id="root">${markup}</div>
-      ${jsScriptTagsFromAssets(assets, "client", "defer", "crossorigin")}  
-      <script>window.${initialDataKey}=${JSON.stringify(data)}</script>    
-  </body>
-</html>`;
+    </body>
+  </html>`;
   return { context, html };
 };
 
@@ -72,7 +80,8 @@ server
   .disable("x-powered-by")
   .use(express.static(process.env.RAZZLE_PUBLIC_DIR))
   .get("/*", (req, res) => {
-    console.log('In Server');
+    console.log("In Server");
+
     const matches = routes.map((route, index) => {
       const match = matchPath(req.url, route);
 
@@ -89,22 +98,30 @@ server
       return null;
     });
 
-    const promises = matches.filter(m => !!m).map((match) => (match ? match.promise : null));
+    const promises = matches
+      .filter((m) => !!m)
+      .map((match) => (match ? match.promise : null));
 
-    const match = matches.filter(m => !!m)[0];    
+    const match = matches.filter((m) => !!m)[0];
 
-    Promise.all(promises).then((data) => {      
-      const { context, html } = renderApp(req, res, data[0], match.route.path);
-      if (context.url) {
-        res.redirect(context.url);
-      } else {
-        res.status(200).send(html);
-      }
-
-    }).catch(error => {
-      console.log('Error in server rendering', error);
-      res.status(500).json({error: error.message, stack: error.stack});
-    });
+    Promise.all(promises)
+      .then((data) => {
+        const { context, html } = renderApp(
+          req,
+          res,
+          data[0],
+          match.route.path
+        );
+        if (context.url) {
+          res.redirect(context.url);
+        } else {
+          res.status(200).send(html);
+        }
+      })
+      .catch((error) => {
+        console.log("Error in server rendering", error);
+        res.status(500).json({ error: error.message, stack: error.stack });
+      });
   });
 
 export default server;

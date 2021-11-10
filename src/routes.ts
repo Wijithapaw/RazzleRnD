@@ -1,8 +1,8 @@
+
 import AboutPage from "./pages/AboutPage";
 import HomePage, { loadHomePagePricingMatrixInitialData } from "./pages/HomePage";
 import OrdersPage from "./pages/OrdersPage";
 import PricingPage, { loadPricingMatrixInitialData } from "./pages/PricingPage";
-
 const routes = [
   {
     path: "/",
@@ -10,7 +10,7 @@ const routes = [
     name: "Home",
     exact: true,
     initialData: loadHomePagePricingMatrixInitialData
-  }, 
+  },
   {
     path: "/about",
     component: AboutPage,
